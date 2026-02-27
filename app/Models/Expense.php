@@ -1,32 +1,41 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Expense extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'colocation_id',
+        'title',
+        'amount',
+        'expense_date',
+        'category_id',
+        'paid_by_user_id',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'expense_date' => 'date',
+    ];
+
+    public function colocation()
     {
-        Schema::create('expenses', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-            $table->string('title');
-            $table->decimal('amount', 10, 2);
-
-            $table->date('expense_date');
-
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('paid_by_user_id')->constrained('users')->cascadeOnDelete();
-
-            $table->timestamps();
-
-            $table->index(['colocation_id', 'expense_date']);
-        });
+        return $this->belongsTo(colocation::class);
     }
 
-    public function down(): void
+    public function category()
     {
-        Schema::dropIfExists('expenses');
+        return $this->belongsTo(category::class);
     }
-};
+
+    // Le user qui a payé
+    public function paidBy()
+    {
+        return $this->belongsTo(User::class, 'paid_by_user_id');
+    }
+}

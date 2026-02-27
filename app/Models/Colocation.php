@@ -1,28 +1,59 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Colocation extends Model
+{
+    use HasFactory;
+
+    // Champs qu'on peut remplir (mass assignment)
+    protected $fillable = [
+        'name',
+        'description',
+        'owner_id',
+        'status',
+    ];
+
+    // Une colocation a un owner (user)
+    public function owner()
     {
-        Schema::create('colocations', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-
-            $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
-
-            $table->enum('status', ['active', 'cancelled'])->default('active');
-            $table->timestamps();
-
-            $table->index(['status', 'owner_id']);
-        });
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function down(): void
+    // Une colocation a plusieurs memberships
+    public function memberships()
     {
-        Schema::dropIfExists('colocations');
+        return $this->hasMany(membership::class);
     }
-};
+
+    // Les membres (users) via la table pivot memberships
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'memberships')
+            ->withPivot(['role', 'reputation_score', 'left_at'])
+            ->withTimestamps();
+    }
+
+    public function invitations()
+    {
+        return $this->hasMany(invitations::class);
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(category::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(expense::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(payment::class);
+    }
+}

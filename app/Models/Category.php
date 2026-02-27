@@ -1,27 +1,26 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'colocation_id',
+        'name',
+    ];
+
+    public function colocation()
     {
-        Schema::create('categories', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-
-            $table->string('name');
-
-            $table->timestamps();
-
-            // نفس الاسم ما يتعاودش داخل نفس colocation
-            $table->unique(['colocation_id', 'name']);
-        });
+        return $this->belongsTo(colocation::class);
     }
 
-    public function down(): void
+    public function expenses()
     {
-        Schema::dropIfExists('categories');
+        return $this->hasMany(expense::class);
     }
-};
+}
