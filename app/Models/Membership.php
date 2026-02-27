@@ -1,34 +1,33 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Membership extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'colocation_id',
+        'user_id',
+        'role',
+        'reputation_score',
+        'left_at',
+    ];
+
+    protected $casts = [
+        'left_at' => 'datetime',
+    ];
+
+    public function user()
     {
-        Schema::create('memberships', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-
-            $table->enum('role', ['owner', 'member'])->default('member');
-            $table->integer('reputation_score')->default(0);
-
-            $table->timestamp('left_at')->nullable();
-
-            $table->timestamps();
-
-            // ما نخليوش نفس user يدخل نفس colocation جوج مرات
-            $table->unique(['colocation_id', 'user_id']);
-
-            $table->index(['user_id', 'left_at']);
-        });
+        return $this->belongsTo(User::class);
     }
 
-    public function down(): void
+    public function colocation()
     {
-        Schema::dropIfExists('memberships');
+        return $this->belongsTo(colocation::class);
     }
-};
+}
