@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FlatshareController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettlementController;
@@ -39,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/flatshares/{flatshare}/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('flatshares.expenses.destroy');
     Route::get('/flatshares/{flatshare}/settlements', [SettlementController::class, 'show'])->name('flatshares.settlements.show');
     Route::post('/flatshares/{flatshare}/payments', [PaymentController::class, 'store'])->name('flatshares.payments.store');
+    Route::post('/flatshares/{flatshare}/leave', [MembershipController::class, 'leave'])->name('flatshares.leave');
+    Route::delete('/flatshares/{flatshare}/memberships/{membership}', [MembershipController::class, 'destroy'])->name('flatshares.memberships.destroy');
     Route::post('/invitations/{token}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('/invitations/{token}/refuse', [InvitationController::class, 'refuse'])->name('invitations.refuse');
 
