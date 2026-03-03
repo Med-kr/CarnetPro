@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FlatshareController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/flatshares/{flatshare}/categories', [CategoryController::class, 'store'])->name('flatshares.categories.store');
     Route::put('/flatshares/{flatshare}/categories/{category}', [CategoryController::class, 'update'])->name('flatshares.categories.update');
     Route::delete('/flatshares/{flatshare}/categories/{category}', [CategoryController::class, 'destroy'])->name('flatshares.categories.destroy');
+    Route::get('/flatshares/{flatshare}/expenses', [ExpenseController::class, 'index'])->name('flatshares.expenses.index');
+    Route::post('/flatshares/{flatshare}/expenses', [ExpenseController::class, 'store'])->name('flatshares.expenses.store');
+    Route::delete('/flatshares/{flatshare}/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('flatshares.expenses.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
