@@ -1,17 +1,28 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FlatshareController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return auth()->check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::get('/flatshares', [FlatshareController::class, 'index'])->name('flatshares.index');
+    Route::get('/flatshares/create', [FlatshareController::class, 'create'])->name('flatshares.create');
+    Route::post('/flatshares', [FlatshareController::class, 'store'])->name('flatshares.store');
+    Route::get('/flatshares/{flatshare}', [FlatshareController::class, 'show'])->name('flatshares.show');
+    Route::get('/flatshares/{flatshare}/edit', [FlatshareController::class, 'edit'])->name('flatshares.edit');
+    Route::put('/flatshares/{flatshare}', [FlatshareController::class, 'update'])->name('flatshares.update');
+    Route::post('/flatshares/{flatshare}/cancel', [FlatshareController::class, 'cancel'])->name('flatshares.cancel');
+    Route::delete('/flatshares/{flatshare}', [FlatshareController::class, 'destroy'])->name('flatshares.destroy');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
