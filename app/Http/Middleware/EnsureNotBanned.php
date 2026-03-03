@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureUserNotBanned
+class EnsureNotBanned
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -15,15 +15,12 @@ class EnsureUserNotBanned
 
         if ($user && $user->isBanned()) {
             Auth::logout();
-
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()
-                ->route('login')
-                ->withErrors([
-                    'email' => 'Votre compte a ete suspendu.',
-                ]);
+            return redirect()->route('login')->withErrors([
+                'email' => 'Votre compte a ete suspendu.',
+            ]);
         }
 
         return $next($request);
