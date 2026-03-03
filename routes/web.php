@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
@@ -44,6 +45,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/flatshares/{flatshare}/memberships/{membership}', [MembershipController::class, 'destroy'])->name('flatshares.memberships.destroy');
     Route::post('/invitations/{token}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('/invitations/{token}/refuse', [InvitationController::class, 'refuse'])->name('invitations.refuse');
+
+    Route::middleware('global-admin')->group(function () {
+        Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+        Route::post('/admin/users/{user}/ban', [AdminController::class, 'ban'])->name('admin.users.ban');
+        Route::post('/admin/users/{user}/unban', [AdminController::class, 'unban'])->name('admin.users.unban');
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
