@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Flatshare;
 use App\Services\SettlementService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -14,9 +15,11 @@ class SettlementController extends Controller
     ) {
     }
 
-    public function show(Request $request, Flatshare $flatshare): View
+    public function show(Request $request, Flatshare $flatshare): View|RedirectResponse
     {
-        $this->authorize('view', $flatshare);
+        if ($redirect = app(FlatshareController::class)->redirectIfCannotView($request, $flatshare)) {
+            return $redirect;
+        }
 
         return view('flatshares.settlements', [
             'flatshare' => $flatshare->load([
@@ -24,8 +27,8 @@ class SettlementController extends Controller
                 'payments.fromUser',
                 'payments.toUser',
             ]),
-            'balances' => $this->settlementService->calculateBalances($flatshare),
             'settlements' => $this->settlementService->calculateSettlements($flatshare),
+            'balances' => $this->settlementService->calculateBalances($flatshare),
         ]);
     }
 }
