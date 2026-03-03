@@ -6,7 +6,8 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -34,7 +35,31 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return back()->with('status', 'profile-updated');
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $data = $request->validateWithBag('updatePassword', [
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+        ]);
+
+        if (! Hash::check($data['current_password'], $request->user()->password)) {
+            $exception = ValidationException::withMessages([
+                'current_password' => 'The current password is incorrect.',
+            ]);
+
+            $exception->errorBag = 'updatePassword';
+
+            throw $exception;
+        }
+
+        $request->user()->update([
+            'password' => $data['password'],
+        ]);
+
+        return back()->with('status', 'password-updated');
     }
 
     /**
@@ -42,9 +67,17 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
-        ]);
+        $request->validateWithBag('userDeletion', ['password' => ['required', 'string']]);
+
+        if (! Hash::check($request->string('password')->toString(), $request->user()->password)) {
+            $exception = ValidationException::withMessages([
+                'password' => 'The password is incorrect.',
+            ]);
+
+            $exception->errorBag = 'userDeletion';
+
+            throw $exception;
+        }
 
         $user = $request->user();
 
@@ -55,6 +88,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return redirect(route('login', absolute: false));
     }
 }
