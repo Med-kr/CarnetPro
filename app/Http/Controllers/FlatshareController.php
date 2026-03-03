@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreFlatshareRequest;
 use App\Http\Requests\UpdateFlatshareRequest;
+use App\Models\Category;
 use App\Models\Flatshare;
 use App\Models\Membership;
 use Illuminate\Http\RedirectResponse;
@@ -64,6 +65,8 @@ class FlatshareController extends Controller
                 'joined_at' => now(),
             ]);
 
+            Category::ensureDefaultsForFlatshare($flatshare->id);
+
             return $flatshare;
         });
 
@@ -76,7 +79,7 @@ class FlatshareController extends Controller
     {
         $this->authorize('view', $flatshare);
 
-        $flatshare->load(['owner', 'activeMemberships.user']);
+        $flatshare->load(['owner', 'activeMemberships.user', 'categories']);
 
         return view('flatshares.show', compact('flatshare'));
     }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FlatshareController;
 use App\Http\Controllers\ProfileController;
@@ -22,6 +23,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/flatshares/{flatshare}', [FlatshareController::class, 'update'])->name('flatshares.update');
     Route::post('/flatshares/{flatshare}/cancel', [FlatshareController::class, 'cancel'])->name('flatshares.cancel');
     Route::delete('/flatshares/{flatshare}', [FlatshareController::class, 'destroy'])->name('flatshares.destroy');
+    Route::post('/flatshares/{flatshare}/categories', [CategoryController::class, 'store'])->name('flatshares.categories.store');
+    Route::put('/flatshares/{flatshare}/categories/{category}', [CategoryController::class, 'update'])->name('flatshares.categories.update');
+    Route::delete('/flatshares/{flatshare}/categories/{category}', [CategoryController::class, 'destroy'])->name('flatshares.categories.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
