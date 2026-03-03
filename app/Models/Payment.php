@@ -1,30 +1,88 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Payment extends Model
+{
+    use HasFactory;
+
+    public const METHOD_CASH = 'cash';
+    public const METHOD_BANK = 'bank_transfer';
+    public const METHOD_CARD = 'card';
+    public const METHOD_MOBILE = 'mobile_wallet';
+    public const METHOD_CUSTOM = 'custom';
+
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    protected $fillable = [
+        'flatshare_id',
+        'from_user_id',
+        'to_user_id',
+        'amount',
+        'settlement_amount',
+        'applied_amount',
+        'credit_amount',
+        'method',
+        'status',
+        'reference',
+        'note',
+        'paid_at',
+    ];
+
+    protected function casts(): array
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('from_user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('to_user_id')->constrained('users')->cascadeOnDelete();
-
-            $table->decimal('amount', 10, 2);
-            $table->timestamp('paid_at')->nullable();
-
-            $table->timestamps();
-
-            $table->index(['colocation_id', 'paid_at']);
-        });
+        return [
+            'amount' => 'decimal:2',
+            'settlement_amount' => 'decimal:2',
+            'applied_amount' => 'decimal:2',
+            'credit_amount' => 'decimal:2',
+            'paid_at' => 'datetime',
+        ];
     }
 
-    public function down(): void
+    public static function methodOptions(): array
     {
-        Schema::dropIfExists('payments');
+        return [
+            self::METHOD_CASH => 'Cash',
+            self::METHOD_BANK => 'Bank transfer',
+            self::METHOD_CARD => 'Card',
+            self::METHOD_MOBILE => 'Mobile wallet',
+            self::METHOD_CUSTOM => 'Custom',
+        ];
     }
-};
+
+    public static function statusOptions(): array
+    {
+        return [
+            self::STATUS_COMPLETED => 'Completed',
+            self::STATUS_PENDING => 'Pending',
+            self::STATUS_CANCELLED => 'Cancelled',
+        ];
+    }
+
+    public function methodLabel(): string
+    {
+        return static::methodOptions()[$this->method] ?? $this->method;
+    }
+
+    public function flatshare(): BelongsTo
+    {
+        return $this->belongsTo(Flatshare::class);
+    }
+
+    public function fromUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'from_user_id');
+    }
+
+    public function toUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'to_user_id');
+    }
+}

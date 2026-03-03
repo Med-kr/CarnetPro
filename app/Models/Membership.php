@@ -1,34 +1,46 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Membership extends Model
+{
+    use HasFactory;
+
+    public const ROLE_OWNER = 'owner';
+    public const ROLE_MEMBER = 'member';
+
+    protected $fillable = [
+        'user_id',
+        'flatshare_id',
+        'role',
+        'joined_at',
+        'left_at',
+    ];
+
+    protected function casts(): array
     {
-        Schema::create('memberships', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-
-            $table->enum('role', ['owner', 'member'])->default('member');
-            $table->integer('reputation_score')->default(0);
-
-            $table->timestamp('left_at')->nullable();
-
-            $table->timestamps();
-
-            // ما نخليوش نفس user يدخل نفس colocation جوج مرات
-            $table->unique(['colocation_id', 'user_id']);
-
-            $table->index(['user_id', 'left_at']);
-        });
+        return [
+            'joined_at' => 'datetime',
+            'left_at' => 'datetime',
+        ];
     }
 
-    public function down(): void
+    public function user(): BelongsTo
     {
-        Schema::dropIfExists('memberships');
+        return $this->belongsTo(User::class);
     }
-};
+
+    public function flatshare(): BelongsTo
+    {
+        return $this->belongsTo(Flatshare::class);
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === self::ROLE_OWNER;
+    }
+}

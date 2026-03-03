@@ -1,3 +1,311 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Outfit', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+    --cp-navy: #0a2540;
+    --cp-deep: #123e66;
+    --cp-blue: #123e66;
+    --cp-cyan: #3ddad7;
+    --cp-teal: #00adb5;
+    --cp-ice: #f8fafc;
+    --cp-stroke: rgba(18, 62, 102, 0.08);
+    --cp-shadow: 0 24px 80px rgba(10, 37, 64, 0.12);
+    --cp-body-text: #1e293b;
+    --cp-body-bg:
+        radial-gradient(circle at top left, rgba(61, 218, 215, 0.10), transparent 28%),
+        radial-gradient(circle at top right, rgba(18, 62, 102, 0.08), transparent 30%),
+        linear-gradient(180deg, #f8fafc 0%, #eef4f8 100%);
+    --cp-glass-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.98));
+    --cp-glass-border: rgba(226, 232, 240, 0.95);
+    --cp-panel-bg: rgba(255, 255, 255, 0.98);
+    --cp-panel-border: #e2e8f0;
+    --cp-muted: #64748b;
+    --cp-soft-bg: rgba(18, 62, 102, 0.05);
+    --cp-soft-text: #123e66;
+}
+
+body {
+    background: var(--cp-body-bg);
+    color: var(--cp-body-text);
+}
+
+[data-theme='dark'] {
+    --cp-shadow: 0 28px 90px rgba(2, 10, 29, 0.38);
+    --cp-body-text: #e2e8f0;
+    --cp-body-bg:
+        radial-gradient(circle at top left, rgba(0, 173, 181, 0.08), transparent 25%),
+        radial-gradient(circle at top right, rgba(18, 62, 102, 0.16), transparent 26%),
+        linear-gradient(180deg, #0b1724 0%, #111c2d 100%);
+    --cp-glass-bg: linear-gradient(180deg, rgba(22, 38, 58, 0.94), rgba(17, 28, 45, 0.98));
+    --cp-glass-border: rgba(30, 41, 59, 0.96);
+    --cp-panel-bg: rgba(22, 38, 58, 0.98);
+    --cp-panel-border: #1e293b;
+    --cp-muted: #94a3b8;
+    --cp-soft-bg: rgba(255, 255, 255, 0.06);
+    --cp-soft-text: #e2e8f0;
+}
+
+.cp-shell {
+    position: relative;
+}
+
+.cp-shell::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.8), transparent 24%),
+        linear-gradient(135deg, rgba(18, 62, 102, 0.03) 25%, transparent 25%) 0 0 / 26px 26px;
+    opacity: 0.65;
+}
+
+.cp-glass {
+    border: 1px solid var(--cp-glass-border);
+    background: var(--cp-glass-bg);
+    box-shadow: var(--cp-shadow);
+    backdrop-filter: blur(18px);
+}
+
+.cp-panel {
+    border: 1px solid var(--cp-panel-border);
+    background: var(--cp-panel-bg);
+    box-shadow: 0 18px 48px rgba(28, 59, 128, 0.08);
+}
+
+.cp-gradient-panel {
+    background:
+        radial-gradient(circle at top right, rgba(61, 218, 215, 0.18), transparent 32%),
+        linear-gradient(135deg, #0a2540 0%, #123e66 58%, #00adb5 100%);
+    box-shadow: 0 24px 60px rgba(10, 37, 64, 0.24);
+}
+
+.cp-stat-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.cp-stat-card::after {
+    content: '';
+    position: absolute;
+    right: -1.5rem;
+    top: -2rem;
+    height: 6rem;
+    width: 6rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.cp-grid-glow {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        radial-gradient(circle at top right, rgba(61, 218, 215, 0.18), transparent 32%),
+        linear-gradient(135deg, #0a2540 0%, #123e66 58%, #00adb5 100%);
+    background-size: 26px 26px;
+    background-position: 0 0, 0 0, 0 0, 0 0;
+}
+
+.cp-nav-link {
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.cp-nav-link:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.cp-input,
+.cp-select {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid rgba(24, 49, 83, 0.13);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 0.85rem 1rem;
+    color: #183153;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.cp-input:focus,
+.cp-select:focus {
+    border-color: rgba(0, 173, 181, 0.55);
+    box-shadow: 0 0 0 4px rgba(0, 173, 181, 0.14);
+}
+
+.cp-btn-primary {
+    border-radius: 999px;
+    background: linear-gradient(135deg, #00adb5 0%, #00949b 100%);
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 173, 181, 0.3);
+}
+
+.cp-btn-primary:hover {
+    transform: translateY(-1px);
+}
+
+.cp-btn-soft {
+    border-radius: 999px;
+    border: 1px solid var(--cp-panel-border);
+    background: var(--cp-soft-bg);
+    color: var(--cp-soft-text);
+}
+
+.cp-kicker {
+    color: var(--cp-teal);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+}
+
+.cp-flow-line {
+    background: linear-gradient(90deg, rgba(239, 102, 122, 0.25), rgba(86, 143, 255, 0.35), rgba(78, 201, 197, 0.28));
+}
+
+.cp-theme-toggle {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+}
+
+.cp-mobile-nav {
+    border: 1px solid var(--cp-glass-border);
+    background: var(--cp-glass-bg);
+    box-shadow: 0 -14px 40px rgba(12, 30, 72, 0.16);
+    backdrop-filter: blur(18px);
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.cp-mobile-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.28rem;
+    min-height: 4rem;
+    border-radius: 1.2rem;
+    padding: 0.15rem 0.2rem 0;
+    color: var(--cp-muted);
+    transition: color 180ms ease, transform 180ms ease;
+}
+
+.cp-mobile-link.is-active,
+.cp-mobile-link:hover {
+    color: var(--cp-teal);
+}
+
+.cp-mobile-icon {
+    display: inline-flex;
+    height: 2.15rem;
+    width: 2.15rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(18, 62, 102, 0.06);
+    transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.cp-mobile-link.is-active .cp-mobile-icon {
+    background: rgba(0, 173, 181, 0.14);
+    color: var(--cp-teal);
+    transform: translateY(-1px);
+}
+
+.cp-mobile-primary {
+    transform: translateY(-1.55rem);
+}
+
+.cp-mobile-primary .cp-mobile-icon {
+    height: 3.85rem;
+    width: 3.85rem;
+    background: linear-gradient(135deg, #00adb5 0%, #3ddad7 100%);
+    box-shadow: 0 12px 30px rgba(0, 173, 181, 0.32);
+    color: white;
+}
+
+.cp-mobile-primary span:last-child {
+    margin-top: -0.15rem;
+    font-weight: 700;
+}
+
+.cp-main-shell {
+    padding-bottom: 7.2rem;
+}
+
+.cp-page-title {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1.05;
+}
+
+.cp-mobile-scroll {
+    scrollbar-width: none;
+}
+
+.cp-mobile-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+[data-theme='dark'] .cp-shell::before {
+    opacity: 0.22;
+}
+
+[data-theme='dark'] .cp-mobile-nav {
+    box-shadow: 0 -16px 40px rgba(2, 10, 22, 0.55);
+}
+
+[data-theme='dark'] .text-stone-500,
+[data-theme='dark'] .text-stone-600,
+[data-theme='dark'] .text-stone-700,
+[data-theme='dark'] .text-stone-900 {
+    color: var(--cp-muted);
+}
+
+[data-theme='dark'] .cp-glass,
+[data-theme='dark'] .cp-panel {
+    color: var(--cp-body-text);
+}
+
+[data-theme='light'] .cp-grid-glow {
+    color: #f8fbff;
+}
+
+[data-theme='light'] .cp-grid-glow .text-white\/55,
+[data-theme='light'] .cp-grid-glow .text-white\/65,
+[data-theme='light'] .cp-grid-glow .text-white\/68,
+[data-theme='light'] .cp-grid-glow .text-white\/70,
+[data-theme='light'] .cp-grid-glow .text-white\/72,
+[data-theme='light'] .cp-grid-glow .text-white\/75,
+[data-theme='light'] .cp-grid-glow .text-white\/78 {
+    color: rgba(248, 251, 255, 0.92);
+}
+
+[data-theme='light'] .cp-grid-glow .cp-btn-soft {
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--cp-deep);
+}
+
+[data-theme='dark'] .bg-white\/10,
+[data-theme='dark'] .bg-white\/12,
+[data-theme='dark'] .bg-white\/14 {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .bg-\[\#edf3ff\],
+[data-theme='dark'] .bg-\[\#eef4ff\] {
+    background-color: rgba(0, 173, 181, 0.12);
+}
+
+[data-theme='dark'] .cp-mobile-icon {
+    background: rgba(255, 255, 255, 0.06);
+}

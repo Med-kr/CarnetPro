@@ -1,32 +1,44 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Expense extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'flatshare_id',
+        'category_id',
+        'payer_id',
+        'title',
+        'amount',
+        'spent_at',
+    ];
+
+    protected function casts(): array
     {
-        Schema::create('expenses', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-            $table->string('title');
-            $table->decimal('amount', 10, 2);
-
-            $table->date('expense_date');
-
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('paid_by_user_id')->constrained('users')->cascadeOnDelete();
-
-            $table->timestamps();
-
-            $table->index(['colocation_id', 'expense_date']);
-        });
+        return [
+            'amount' => 'decimal:2',
+            'spent_at' => 'date',
+        ];
     }
 
-    public function down(): void
+    public function flatshare(): BelongsTo
     {
-        Schema::dropIfExists('expenses');
+        return $this->belongsTo(Flatshare::class);
     }
-};
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function payer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'payer_id');
+    }
+}
