@@ -1,28 +1,25 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Edit flatshare') }}</h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-sm sm:rounded-lg">
-                <form method="POST" action="{{ route('flatshares.update', $flatshare) }}" class="p-6 space-y-6">
-                    @csrf
-                    @method('PUT')
-                    <div>
-                        <x-input-label for="name" :value="__('Flatshare name')" />
-                        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $flatshare->name)" required autofocus />
-                        <x-input-error :messages="$errors->get('name')" class="mt-2" />
-                    </div>
+@section('content')
+    <div class="grid gap-6 lg:grid-cols-[1.05fr,0.95fr]">
+        <section class="cp-gradient-panel rounded-[2rem] p-7 text-white">
+            <p class="cp-kicker !text-white/70">Refine workspace</p>
+            <h1 class="mt-3 text-4xl font-semibold tracking-tight">Mettez a jour l’identite de votre colocation.</h1>
+            <p class="mt-3 max-w-xl text-white/78">Conservez une presentation cohérente de l’espace pour les membres, les categories et les remboursements.</p>
+        </section>
 
-                    <div class="flex items-center justify-end gap-3">
-                        <a href="{{ route('flatshares.show', $flatshare) }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700">
-                            {{ __('Back') }}
-                        </a>
-                        <x-primary-button>{{ __('Save changes') }}</x-primary-button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <section class="cp-glass rounded-[2rem] p-6">
+            <h2 class="text-2xl font-semibold">Edit flatshare</h2>
+
+            <form method="POST" action="{{ route('flatshares.update', $flatshare) }}" class="mt-8 space-y-5">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label class="mb-2 block text-sm font-medium" for="name">Flatshare name</label>
+                    <input id="name" name="name" type="text" value="{{ old('name', $flatshare->name) }}" required class="cp-input">
+                </div>
+                <button class="cp-btn-primary px-5 py-3 font-medium">Save</button>
+            </form>
+        </section>
     </div>
-</x-app-layout>
+@endsection

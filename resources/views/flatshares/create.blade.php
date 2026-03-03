@@ -1,27 +1,25 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Create flatshare') }}</h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-sm sm:rounded-lg">
-                <form method="POST" action="{{ route('flatshares.store') }}" class="p-6 space-y-6">
-                    @csrf
-                    <div>
-                        <x-input-label for="name" :value="__('Flatshare name')" />
-                        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name')" required autofocus />
-                        <x-input-error :messages="$errors->get('name')" class="mt-2" />
-                    </div>
+@section('content')
+    <div class="grid gap-6 lg:grid-cols-[1.05fr,0.95fr]">
+        <section class="cp-gradient-panel cp-grid-glow rounded-[2rem] p-7 text-white">
+            <p class="cp-kicker !text-white/70">Create flow</p>
+            <h1 class="mt-3 text-4xl font-semibold tracking-tight">Lancez une nouvelle colocation avec une base claire.</h1>
+            <p class="mt-3 max-w-xl text-white/78">Un seul espace actif par utilisateur. Creez-le une fois, puis gerez invitations, depenses et remboursements dans le meme cockpit.</p>
+        </section>
 
-                    <div class="flex items-center justify-end gap-3">
-                        <a href="{{ route('flatshares.index') }}" class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700">
-                            {{ __('Cancel') }}
-                        </a>
-                        <x-primary-button>{{ __('Create') }}</x-primary-button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <section class="cp-glass rounded-[2rem] p-6">
+            <h2 class="text-2xl font-semibold">Create flatshare</h2>
+            <p class="mt-2 text-sm text-stone-500">A user can only have one active flatshare at a time.</p>
+
+            <form method="POST" action="{{ route('flatshares.store') }}" class="mt-8 space-y-5">
+                @csrf
+                <div>
+                    <label class="mb-2 block text-sm font-medium" for="name">Flatshare name</label>
+                    <input id="name" name="name" type="text" value="{{ old('name') }}" required class="cp-input">
+                </div>
+                <button class="cp-btn-primary px-5 py-3 font-medium">Create</button>
+            </form>
+        </section>
     </div>
-</x-app-layout>
+@endsection
