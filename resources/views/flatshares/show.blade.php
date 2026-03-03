@@ -26,6 +26,12 @@
                         {{ __($label) }}
                     </a>
                 @endforeach
+                <a
+                    href="{{ route('flatshares.settlements.show', $flatshare) }}"
+                    class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700"
+                >
+                    {{ __('Settlements') }}
+                </a>
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg">
@@ -214,6 +220,51 @@
                     </div>
                 </div>
             @endif
+
+            <div class="bg-white shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ __('Invite a member') }}</h3>
+
+                    @can('invite', $flatshare)
+                        <form method="POST" action="{{ route('flatshares.invitations.store', $flatshare) }}" class="mt-4 flex flex-col gap-3 sm:flex-row">
+                            @csrf
+                            <x-text-input name="email" type="email" class="block w-full" :value="old('email')" placeholder="member@example.com" required />
+                            <x-primary-button>{{ __('Send invitation') }}</x-primary-button>
+                        </form>
+                    @endcan
+
+                    @if(session('invitation_url'))
+                        <div class="mt-4 rounded-md border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-900">
+                            <p class="font-semibold">{{ __('Invitation link') }}</p>
+                            <p class="mt-2 break-all">{{ session('invitation_url') }}</p>
+                        </div>
+                    @endif
+
+                    <div class="mt-6 space-y-3">
+                        @forelse($flatshare->invitations()->latest()->get() as $invitation)
+                            <div class="rounded-md border border-gray-200 px-4 py-3">
+                                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ $invitation->email }}</p>
+                                        <p class="text-sm text-gray-500">
+                                            {{ ucfirst($invitation->status) }} · {{ $invitation->expires_at?->format('Y-m-d H:i') }}
+                                        </p>
+                                    </div>
+                                    @can('invite', $flatshare)
+                                        <form method="POST" action="{{ route('flatshares.invitations.destroy', [$flatshare, $invitation]) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <x-danger-button>{{ __('Delete') }}</x-danger-button>
+                                        </form>
+                                    @endcan
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">{{ __('No invitations sent yet.') }}</p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>

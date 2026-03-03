@@ -5,8 +5,9 @@ namespace App\Http\Requests;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
-class ProfileUpdateRequest extends FormRequest
+class RegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,13 +18,8 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($this->user()->id),
-            ],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class, 'email')],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }
 }
