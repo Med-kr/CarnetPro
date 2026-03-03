@@ -1,33 +1,37 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Invitation extends Model
+{
+    use HasFactory;
+
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_ACCEPTED = 'accepted';
+    public const STATUS_REFUSED = 'refused';
+    public const STATUS_EXPIRED = 'expired';
+
+    protected $fillable = [
+        'flatshare_id',
+        'email',
+        'token',
+        'status',
+        'expires_at',
+    ];
+
+    protected function casts(): array
     {
-        Schema::create('invitations', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-
-            $table->string('email');
-            $table->string('token')->unique();
-
-            $table->timestamp('expires_at')->nullable();
-            $table->timestamp('accepted_at')->nullable();
-            $table->timestamp('refused_at')->nullable();
-
-            $table->timestamps();
-
-            $table->index(['colocation_id', 'email']);
-        });
+        return [
+            'expires_at' => 'datetime',
+        ];
     }
 
-    public function down(): void
+    public function flatshare(): BelongsTo
     {
-        Schema::dropIfExists('invitations');
+        return $this->belongsTo(Flatshare::class);
     }
-};
+}

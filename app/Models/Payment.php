@@ -1,30 +1,43 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration {
-    public function up(): void
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Payment extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'flatshare_id',
+        'from_user_id',
+        'to_user_id',
+        'amount',
+        'paid_at',
+    ];
+
+    protected function casts(): array
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('from_user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('to_user_id')->constrained('users')->cascadeOnDelete();
-
-            $table->decimal('amount', 10, 2);
-            $table->timestamp('paid_at')->nullable();
-
-            $table->timestamps();
-
-            $table->index(['colocation_id', 'paid_at']);
-        });
+        return [
+            'amount' => 'decimal:2',
+            'paid_at' => 'datetime',
+        ];
     }
 
-    public function down(): void
+    public function flatshare(): BelongsTo
     {
-        Schema::dropIfExists('payments');
+        return $this->belongsTo(Flatshare::class);
     }
-};
+
+    public function fromUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'from_user_id');
+    }
+
+    public function toUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'to_user_id');
+    }
+}
