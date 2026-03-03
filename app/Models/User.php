@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,14 +12,8 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -29,21 +22,11 @@ class User extends Authenticatable
         'is_banned',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -52,6 +35,16 @@ class User extends Authenticatable
             'is_global_admin' => 'boolean',
             'is_banned' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (User $user) {
+            if (User::count() === 1) {
+                $user->is_global_admin = true;
+                $user->save();
+            }
+        });
     }
 
     public function ownedFlatshares(): HasMany
@@ -76,6 +69,31 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function paidExpenses(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'payer_id');
+    }
+
+    public function outgoingPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'from_user_id');
+    }
+
+    public function incomingPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'to_user_id');
+    }
+
+    public function isGlobalAdmin(): bool
+    {
+        return $this->is_global_admin;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->is_banned;
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_banned', false);
@@ -86,6 +104,19 @@ class User extends Authenticatable
         return $this->memberships()
             ->whereNull('left_at')
             ->whereHas('flatshare', fn (Builder $query) => $query->where('status', Flatshare::STATUS_ACTIVE))
+            ->exists();
+    }
+
+    public function isOwnerOfFlatshare(Flatshare $flatshare): bool
+    {
+        return $flatshare->owner_id === $this->id;
+    }
+
+    public function isActiveMemberOfFlatshare(Flatshare $flatshare): bool
+    {
+        return $this->memberships()
+            ->where('flatshare_id', $flatshare->id)
+            ->whereNull('left_at')
             ->exists();
     }
 }
