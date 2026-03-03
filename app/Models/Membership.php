@@ -4,30 +4,43 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Membership extends Model
 {
     use HasFactory;
 
+    public const ROLE_OWNER = 'owner';
+    public const ROLE_MEMBER = 'member';
+
     protected $fillable = [
-        'colocation_id',
         'user_id',
+        'flatshare_id',
         'role',
-        'reputation_score',
+        'joined_at',
         'left_at',
     ];
 
-    protected $casts = [
-        'left_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'joined_at' => 'datetime',
+            'left_at' => 'datetime',
+        ];
+    }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function colocation()
+    public function flatshare(): BelongsTo
     {
-        return $this->belongsTo(colocation::class);
+        return $this->belongsTo(Flatshare::class);
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === self::ROLE_OWNER;
     }
 }

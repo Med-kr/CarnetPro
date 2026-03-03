@@ -4,23 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'colocation_id',
+        'flatshare_id',
         'name',
     ];
 
-    public function colocation()
+    public function flatshare(): BelongsTo
     {
-        return $this->belongsTo(colocation::class);
+        return $this->belongsTo(Flatshare::class);
     }
 
-    public function expenses()
+    public function expenses(): HasMany
     {
-        return $this->hasMany(expense::class);
+        return $this->hasMany(Expense::class);
     }
 }

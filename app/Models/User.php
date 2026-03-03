@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -16,7 +19,6 @@ class User extends Authenticatable
         'password',
         'is_global_admin',
         'is_banned',
-        'banned_at',
     ];
 
     protected $hidden = [
@@ -24,14 +26,17 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'is_global_admin' => 'boolean',
-        'is_banned' => 'boolean',
-        'banned_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_global_admin' => 'boolean',
+            'is_banned' => 'boolean',
+        ];
+    }
 
-    protected static function booted()
+    protected static function booted(): void
     {
         static::created(function (User $user) {
             if (User::count() === 1) {
@@ -41,47 +46,62 @@ class User extends Authenticatable
         });
     }
 
-    // Relations
-    public function memberships()
+    public function memberships(): HasMany
     {
         return $this->hasMany(Membership::class);
     }
 
-    public function colocations()
+    public function flatshares(): BelongsToMany
     {
-        return $this->belongsToMany(Colocation::class, 'memberships')
-            ->withPivot(['role', 'reputation_score', 'left_at'])
+        return $this->belongsToMany(Flatshare::class, 'memberships')
+            ->withPivot(['role', 'joined_at', 'left_at'])
             ->withTimestamps();
     }
 
-    public function ownedColocations()
+    public function ownedFlatshares(): HasMany
     {
-        return $this->hasMany(Colocation::class, 'owner_id');
+        return $this->hasMany(Flatshare::class, 'owner_id');
     }
 
-    public function isGlobalAdmin()
+    public function paidExpenses(): HasMany
     {
-        return $this->is_global_admin === true;
+        return $this->hasMany(Expense::class, 'payer_id');
     }
 
-    public function isBanned()
+    public function outgoingPayments(): HasMany
     {
-        return $this->is_banned === true;
+        return $this->hasMany(Payment::class, 'from_user_id');
     }
 
-    public function isOwnerOfColocation($colocationId)
+    public function incomingPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'to_user_id');
+    }
+
+    public function isGlobalAdmin(): bool
+    {
+        return $this->is_global_admin;
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->is_banned;
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_banned', false);
+    }
+
+    public function isOwnerOfFlatshare(Flatshare $flatshare): bool
+    {
+        return $flatshare->owner_id === $this->id;
+    }
+
+    public function isActiveMemberOfFlatshare(Flatshare $flatshare): bool
     {
         return $this->memberships()
-            ->where('colocation_id', $colocationId)
-            ->whereNull('left_at')
-            ->where('role', 'owner')
-            ->exists();
-    }
-
-    public function isActiveMemberOfColocation($colocationId)
-    {
-        return $this->memberships()
-            ->where('colocation_id', $colocationId)
+            ->where('flatshare_id', $flatshare->id)
             ->whereNull('left_at')
             ->exists();
     }
