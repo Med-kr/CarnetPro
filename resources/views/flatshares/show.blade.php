@@ -7,11 +7,20 @@
                     {{ __('Owner') }}: {{ $flatshare->owner->name }} · {{ __('Status') }}: {{ $flatshare->status }}
                 </p>
             </div>
-            @can('update', $flatshare)
-                <a href="{{ route('flatshares.edit', $flatshare) }}" class="inline-flex rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700">
-                    {{ __('Edit') }}
-                </a>
-            @endcan
+            <div class="flex items-center gap-3">
+                @can('leave', $flatshare)
+                    <form method="POST" action="{{ route('flatshares.leave', $flatshare) }}">
+                        @csrf
+                        <x-danger-button>{{ __('Leave') }}</x-danger-button>
+                    </form>
+                @endcan
+
+                @can('update', $flatshare)
+                    <a href="{{ route('flatshares.edit', $flatshare) }}" class="inline-flex rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700">
+                        {{ __('Edit') }}
+                    </a>
+                @endcan
+            </div>
         </div>
     </x-slot>
 
@@ -66,10 +75,23 @@
                                         <div>
                                             <p class="font-medium text-gray-900">{{ $membership->user->name }}</p>
                                             <p class="text-sm text-gray-500">{{ $membership->user->email }}</p>
+                                            <p class="text-sm text-gray-500">{{ __('Reputation') }}: {{ $membership->user->reputation }}</p>
                                         </div>
-                                        <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                            {{ $membership->role }}
-                                        </span>
+                                        <div class="flex items-center gap-3">
+                                            <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                                                {{ $membership->role }}
+                                            </span>
+
+                                            @can('removeMember', $flatshare)
+                                                @if($membership->role !== App\Models\Membership::ROLE_OWNER)
+                                                    <form method="POST" action="{{ route('flatshares.memberships.destroy', [$flatshare, $membership]) }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <x-danger-button>{{ __('Remove') }}</x-danger-button>
+                                                    </form>
+                                                @endif
+                                            @endcan
+                                        </div>
                                     </div>
                                 </div>
                             @empty

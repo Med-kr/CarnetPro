@@ -27,6 +27,7 @@ class SettlementService
                     ->orWhere('status', \App\Models\Payment::STATUS_COMPLETED);
             })
             ->get();
+        $adjustments = $flatshare->adjustments()->get();
         $share = round((float) $expenses->sum('amount') / max(1, $members->count()), 2);
 
         $balances = $members->mapWithKeys(function (User $user) use ($expenses, $share) {
@@ -56,6 +57,25 @@ class SettlementService
             $balances->put($payment->to_user_id, [
                 ...$to,
                 'balance' => round($to['balance'] - (float) $payment->amount, 2),
+            ]);
+        }
+
+        foreach ($adjustments as $adjustment) {
+            if (! isset($balances[$adjustment->from_user_id], $balances[$adjustment->to_user_id])) {
+                continue;
+            }
+
+            $from = $balances->get($adjustment->from_user_id);
+            $to = $balances->get($adjustment->to_user_id);
+
+            $balances->put($adjustment->from_user_id, [
+                ...$from,
+                'balance' => round($from['balance'] - (float) $adjustment->amount, 2),
+            ]);
+
+            $balances->put($adjustment->to_user_id, [
+                ...$to,
+                'balance' => round($to['balance'] + (float) $adjustment->amount, 2),
             ]);
         }
 
@@ -116,5 +136,17 @@ class SettlementService
             ->first(fn (array $line) => $line['from_user']->id === $fromUserId && $line['to_user']->id === $toUserId);
 
         return $settlement ? (float) $settlement['amount'] : null;
+    }
+
+    public function outstandingDebtForUser(Flatshare $flatshare, User $user): float
+    {
+        $balance = $this->calculateBalances($flatshare)
+            ->first(fn (array $line) => $line['user']->id === $user->id);
+
+        if ($balance === null) {
+            return 0.0;
+        }
+
+        return round(abs(min(0, (float) $balance['balance'])), 2);
     }
 }

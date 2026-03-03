@@ -39,6 +39,11 @@ class FlatsharePolicy
         return $user->is_global_admin || $flatshare->owner_id === $user->id;
     }
 
+    public function invite(User $user, Flatshare $flatshare): bool
+    {
+        return $this->update($user, $flatshare);
+    }
+
     public function cancel(User $user, Flatshare $flatshare): bool
     {
         return $this->update($user, $flatshare);
@@ -52,6 +57,11 @@ class FlatsharePolicy
             ->first();
 
         return $membership instanceof Membership && ! $membership->isOwner();
+    }
+
+    public function removeMember(User $user, Flatshare $flatshare): bool
+    {
+        return $this->update($user, $flatshare);
     }
 
     public function delete(User $user, Flatshare $flatshare): bool

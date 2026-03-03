@@ -63,6 +63,11 @@ class Flatshare extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(Adjustment::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;

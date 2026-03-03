@@ -18,6 +18,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'reputation',
         'is_global_admin',
         'is_banned',
     ];
@@ -32,6 +33,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'reputation' => 'integer',
             'is_global_admin' => 'boolean',
             'is_banned' => 'boolean',
         ];
