@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFlatshareRequest;
 use App\Http\Requests\UpdateFlatshareRequest;
 use App\Models\Category;
+use App\Models\Expense;
 use App\Models\Flatshare;
 use App\Models\Membership;
 use Illuminate\Http\RedirectResponse;
@@ -75,13 +76,21 @@ class FlatshareController extends Controller
             ->with('status', 'Flatshare created. Activate it when you are ready.');
     }
 
-    public function show(Flatshare $flatshare): View
+    public function show(Request $request, Flatshare $flatshare): View
     {
         $this->authorize('view', $flatshare);
 
-        $flatshare->load(['owner', 'activeMemberships.user', 'categories']);
+        $flatshare->load([
+            'owner',
+            'activeMemberships.user',
+            'categories',
+            'expenses' => fn ($query) => $query->with(['payer', 'category'])->latest('spent_at'),
+        ]);
 
-        return view('flatshares.show', compact('flatshare'));
+        return view('flatshares.show', [
+            'flatshare' => $flatshare,
+            'tab' => $request->string('tab')->toString() ?: 'members',
+        ]);
     }
 
     public function edit(Flatshare $flatshare): View
