@@ -9,6 +9,15 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <div class="bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
+                    @if(auth()->user()?->is_global_admin)
+                        <div class="mb-6 rounded-md border border-sky-200 bg-sky-50 px-4 py-3">
+                            <p class="text-sm text-sky-900">{{ __('Global admin access is enabled for this account.') }}</p>
+                            <a href="{{ route('admin.index') }}" class="mt-3 inline-flex rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white">
+                                {{ __('Open admin dashboard') }}
+                            </a>
+                        </div>
+                    @endif
+
                     @if($activeMembership)
                         <p class="text-sm text-gray-500">{{ __('Active flatshare') }}</p>
                         <h3 class="mt-2 text-2xl font-semibold">{{ $activeMembership->flatshare->name }}</h3>
