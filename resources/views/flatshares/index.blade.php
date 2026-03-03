@@ -1,60 +1,101 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Flatshares') }}</h2>
+@extends('layouts.app')
+
+@section('content')
+    @php
+        $badgeClasses = fn (string $type) => match ($type) {
+            'active' => 'bg-emerald-100 text-emerald-700',
+            'left' => 'bg-amber-100 text-amber-700',
+            default => 'bg-slate-200 text-slate-700',
+        };
+    @endphp
+
+    <section class="cp-glass rounded-[1.5rem] p-4 sm:rounded-[2rem] sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="cp-kicker">Workspace browser</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Vos colocations, dans une vue propre et rapide.</h1>
+                <p class="mt-2 max-w-2xl text-sm text-stone-500">Retrouvez vos espaces actifs, leur statut et le proprietaire sans passer par plusieurs pages.</p>
+            </div>
             @can('create', App\Models\Flatshare::class)
-                <a href="{{ route('flatshares.create') }}" class="inline-flex rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white">
-                    {{ __('New flatshare') }}
-                </a>
+                <a href="{{ route('flatshares.create') }}" class="cp-btn-primary inline-flex w-full justify-center px-5 py-3 font-medium sm:w-auto">New colocation</a>
+            @else
+                <div class="w-full sm:w-auto sm:text-right">
+                    <button type="button" disabled class="w-full cursor-not-allowed rounded-full bg-slate-300 px-5 py-3 font-medium text-slate-600 opacity-80 sm:w-auto">
+                        New colocation
+                    </button>
+                    <p class="mt-2 text-xs text-stone-500">Leave or deactivate your active flatshare before creating another one.</p>
+                </div>
             @endcan
         </div>
-    </x-slot>
+    </section>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="bg-white shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900">{{ __('Active flatshare') }}</h3>
-                    @if($activeFlatshare)
-                        <div class="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-4">
-                            <div class="flex items-center justify-between gap-4">
-                                <div>
-                                    <p class="font-semibold text-gray-900">{{ $activeFlatshare->name }}</p>
-                                    <p class="text-sm text-gray-600">{{ __('Owner') }}: {{ $activeFlatshare->owner->name }}</p>
-                                </div>
-                                <a href="{{ route('flatshares.show', $activeFlatshare) }}" class="inline-flex rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-                                    {{ __('Open') }}
-                                </a>
-                            </div>
+    <div class="mt-6 space-y-6">
+        <section class="cp-glass rounded-[1.5rem] p-4 sm:rounded-[2rem] sm:p-6">
+            <div class="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+                <div>
+                    <p class="cp-kicker">Current</p>
+                    <h2 class="mt-2 text-2xl font-semibold">Active flatshare</h2>
+                </div>
+                <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] {{ $badgeClasses($activeFlatshare ? 'active' : 'cancelled') }}">
+                    {{ $activeFlatshare ? 'Active' : 'None' }}
+                </span>
+            </div>
+
+            @if($activeFlatshare)
+                <a href="{{ route('flatshares.show', $activeFlatshare) }}" class="mt-5 block rounded-[1.5rem] border border-emerald-200/60 bg-emerald-50/70 p-4 transition hover:-translate-y-1 sm:rounded-[1.75rem] sm:p-5">
+                    <div class="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
+                        <div>
+                            <p class="cp-kicker !text-emerald-700">Active flatshare</p>
+                            <h3 class="mt-2 text-2xl font-semibold text-slate-950">{{ $activeFlatshare->name }}</h3>
                         </div>
-                    @else
-                        <p class="mt-4 text-sm text-gray-500">{{ __('No active flatshare found.') }}</p>
-                    @endif
-                </div>
-            </div>
-
-            <div class="bg-white shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900">{{ __('Other flatshares') }}</h3>
-                    <div class="mt-4 space-y-3">
-                        @forelse($archivedFlatshares as $flatshare)
-                            <a href="{{ route('flatshares.show', $flatshare) }}" class="block rounded-md border border-gray-200 px-4 py-4 hover:bg-gray-50">
-                                <div class="flex items-center justify-between gap-4">
-                                    <div>
-                                        <p class="font-medium text-gray-900">{{ $flatshare->name }}</p>
-                                        <p class="text-sm text-gray-500">{{ __('Owner') }}: {{ $flatshare->owner->name }}</p>
-                                    </div>
-                                    <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600">
-                                        {{ $flatshare->status }}
-                                    </span>
-                                </div>
-                            </a>
-                        @empty
-                            <p class="text-sm text-gray-500">{{ __('No archived flatshares.') }}</p>
-                        @endforelse
+                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs uppercase tracking-[0.2em] text-emerald-700">Active</span>
                     </div>
+                    <div class="mt-6 space-y-2 text-sm text-slate-600">
+                        <p>Owner: <span class="font-medium text-slate-900">{{ $activeFlatshare->owner->name }}</span></p>
+                        <p>This is the flatshare where your live balances, expenses and settlements are active.</p>
+                    </div>
+                </a>
+            @else
+                <div class="mt-5 rounded-[1.75rem] border border-dashed border-slate-300 p-5 text-sm text-stone-500">
+                    You do not currently belong to an active flatshare.
                 </div>
-            </div>
-        </div>
+            @endif
+        </section>
+
+        @if($pastFlatshares->isNotEmpty())
+            <section class="cp-glass rounded-[1.5rem] p-4 sm:rounded-[2rem] sm:p-6">
+                <div class="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+                    <div>
+                        <p class="cp-kicker">Archive</p>
+                        <h2 class="mt-2 text-2xl font-semibold">Past flatshares</h2>
+                    </div>
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-600">{{ $pastFlatshares->count() }}</span>
+                </div>
+
+                <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    @foreach($pastFlatshares as $flatshare)
+                        @php
+                            $membership = $flatshare->memberships()->where('user_id', auth()->id())->latest('id')->first();
+                            $state = $membership?->left_at ? 'left' : ($flatshare->status === \App\Models\Flatshare::STATUS_CANCELLED ? 'cancelled' : 'inactive');
+                            $stateLabel = $membership?->left_at ? 'Left' : ($flatshare->status === \App\Models\Flatshare::STATUS_CANCELLED ? 'Cancelled' : 'Inactive');
+                        @endphp
+
+                        <a href="{{ route('flatshares.show', $flatshare) }}" class="cp-panel block rounded-[1.5rem] p-4 transition hover:-translate-y-1 sm:rounded-[2rem] sm:p-5">
+                            <div class="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
+                                <div>
+                                    <p class="cp-kicker">Flatshare</p>
+                                    <h3 class="mt-2 text-2xl font-semibold">{{ $flatshare->name }}</h3>
+                                </div>
+                                <span class="rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] {{ $badgeClasses($state) }}">{{ $stateLabel }}</span>
+                            </div>
+                            <div class="mt-8 space-y-2 text-sm text-stone-500">
+                                <p>Owner: <span class="font-medium text-stone-700">{{ $flatshare->owner->name }}</span></p>
+                                <p>Status: {{ ucfirst($flatshare->status) }}</p>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </section>
+        @endif
     </div>
-</x-app-layout>
+@endsection

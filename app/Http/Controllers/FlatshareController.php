@@ -7,7 +7,8 @@ use App\Http\Requests\UpdateFlatshareRequest;
 use App\Models\Category;
 use App\Models\Flatshare;
 use App\Models\Membership;
-use App\Services\ReputationService;
+use App\Services\SettlementService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ use Illuminate\View\View;
 class FlatshareController extends Controller
 {
     public function __construct(
-        protected ReputationService $reputationService
+        protected SettlementService $settlementService
     ) {
     }
 
@@ -26,26 +27,25 @@ class FlatshareController extends Controller
 
         $flatshares = Flatshare::query()
             ->whereHas('memberships', fn ($query) => $query->where('user_id', $user->id))
-            ->with(['owner', 'memberships'])
+            ->with('owner')
             ->latest()
             ->get();
 
         $activeFlatshare = $flatshares->first(function (Flatshare $flatshare) use ($user) {
-            if (! $flatshare->isActive()) {
+            if ($flatshare->status !== Flatshare::STATUS_ACTIVE) {
                 return false;
             }
 
-            return $flatshare->memberships
+            return $flatshare->memberships()
                 ->where('user_id', $user->id)
-                ->where('left_at', null)
-                ->isNotEmpty();
+                ->whereNull('left_at')
+                ->exists();
         });
 
-        $archivedFlatshares = $flatshares
-            ->reject(fn (Flatshare $flatshare) => $activeFlatshare?->id === $flatshare->id)
+        $pastFlatshares = $flatshares->reject(fn (Flatshare $flatshare) => $activeFlatshare?->id === $flatshare->id)
             ->values();
 
-        return view('flatshares.index', compact('activeFlatshare', 'archivedFlatshares'));
+        return view('flatshares.index', compact('flatshares', 'activeFlatshare', 'pastFlatshares'));
     }
 
     public function create(): View
@@ -59,9 +59,9 @@ class FlatshareController extends Controller
     {
         $flatshare = DB::transaction(function () use ($request) {
             $flatshare = Flatshare::create([
-                'name' => $request->string('name')->toString(),
-                'status' => Flatshare::STATUS_CANCELLED,
+                'name' => $request->string('name'),
                 'owner_id' => $request->user()->id,
+                'status' => Flatshare::STATUS_CANCELLED,
             ]);
 
             Membership::create([
@@ -76,26 +76,33 @@ class FlatshareController extends Controller
             return $flatshare;
         });
 
-        return redirect()
-            ->route('flatshares.show', $flatshare)
-            ->with('status', 'Flatshare created. Activate it when you are ready.');
+        return redirect()->route('flatshares.show', $flatshare)->with('success', 'Flatshare created in deactivated mode. Activate it when you are ready.');
     }
 
-    public function show(Request $request, Flatshare $flatshare): View
+    public function show(Request $request, Flatshare $flatshare): View|RedirectResponse
     {
-        $this->authorize('view', $flatshare);
+        if ($redirect = $this->redirectIfCannotView($request, $flatshare)) {
+            return $redirect;
+        }
 
-        $flatshare->load([
-            'owner',
-            'activeMemberships.user',
-            'categories',
-            'invitations',
-            'expenses' => fn ($query) => $query->with(['payer', 'category'])->latest('spent_at'),
-        ]);
+        $month = $request->string('month')->toString() ?: null;
+        $tab = $request->string('tab')->toString() ?: 'members';
+        $overview = $this->settlementService->buildOverview($flatshare, $month);
 
         return view('flatshares.show', [
-            'flatshare' => $flatshare,
-            'tab' => $request->string('tab')->toString() ?: 'members',
+            'flatshare' => $flatshare->load([
+                'owner',
+                'activeMemberships.user',
+                'categories',
+                'invitations' => fn ($query) => $query->latest(),
+                'payments.fromUser',
+                'payments.toUser',
+                'adjustments.fromUser',
+                'adjustments.toUser',
+            ]),
+            'month' => $month,
+            'tab' => $tab,
+            ...$overview,
         ]);
     }
 
@@ -110,9 +117,7 @@ class FlatshareController extends Controller
     {
         $flatshare->update($request->validated());
 
-        return redirect()
-            ->route('flatshares.show', $flatshare)
-            ->with('status', 'Flatshare updated.');
+        return redirect()->route('flatshares.show', $flatshare)->with('success', 'Flatshare updated.');
     }
 
     public function cancel(Flatshare $flatshare): RedirectResponse
@@ -147,15 +152,14 @@ class FlatshareController extends Controller
         }
 
         if ($nextStatus === Flatshare::STATUS_CANCELLED) {
-            $this->reputationService->handleFlatshareCancellation($flatshare);
+            app(\App\Services\ReputationService::class)->handleFlatshareCancellation($flatshare);
         }
 
         $flatshare->update(['status' => $nextStatus]);
 
-        return back()->with(
-            'status',
-            $nextStatus === Flatshare::STATUS_ACTIVE ? 'Flatshare activated.' : 'Flatshare deactivated.'
-        );
+        return back()->with('success', $nextStatus === Flatshare::STATUS_ACTIVE
+            ? 'Flatshare activated.'
+            : 'Flatshare deactivated.');
     }
 
     public function destroy(Flatshare $flatshare): RedirectResponse
@@ -164,8 +168,19 @@ class FlatshareController extends Controller
 
         $flatshare->delete();
 
-        return redirect()
-            ->route('flatshares.index')
-            ->with('status', 'Flatshare deleted.');
+        return redirect()->route('flatshares.index')->with('success', 'Flatshare deleted.');
+    }
+
+    public function redirectIfCannotView(Request $request, Flatshare $flatshare): ?RedirectResponse
+    {
+        try {
+            $this->authorize('view', $flatshare);
+
+            return null;
+        } catch (AuthorizationException) {
+            return redirect()
+                ->route('flatshares.index')
+                ->with('warning', 'You no longer have access to this flatshare.');
+        }
     }
 }
