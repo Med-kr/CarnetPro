@@ -1,14 +1,23 @@
 <x-guest-layout>
-    <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
+
+    @if(isset($invitation) && $invitation)
+        <div class="mb-4 rounded-md border border-sky-200 bg-sky-50 px-4 py-4 text-sm text-sky-900">
+            <p class="font-semibold">{{ $invitation->flatshare->name }}</p>
+            <p class="mt-1">{{ __('Owner') }}: {{ $invitation->flatshare->owner->name }}</p>
+            <p class="mt-1">{{ __('Invited email') }}: {{ $invitation->email }}</p>
+        </div>
+    @endif
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
+        @if(isset($invitation) && $invitation)
+            <input type="hidden" name="invitation" value="{{ $invitation->token }}">
+        @endif
 
-        <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $invitation->email ?? null)" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
@@ -33,12 +42,6 @@
         </div>
 
         <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
             <x-primary-button class="ms-3">
                 {{ __('Log in') }}
             </x-primary-button>
