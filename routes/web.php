@@ -6,6 +6,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FlatshareController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettlementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/flatshares/{flatshare}/expenses', [ExpenseController::class, 'index'])->name('flatshares.expenses.index');
     Route::post('/flatshares/{flatshare}/expenses', [ExpenseController::class, 'store'])->name('flatshares.expenses.store');
     Route::delete('/flatshares/{flatshare}/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('flatshares.expenses.destroy');
+    Route::get('/flatshares/{flatshare}/settlements', [SettlementController::class, 'show'])->name('flatshares.settlements.show');
     Route::post('/invitations/{token}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('/invitations/{token}/refuse', [InvitationController::class, 'refuse'])->name('invitations.refuse');
 
