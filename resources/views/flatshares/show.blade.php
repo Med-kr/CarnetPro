@@ -26,6 +26,12 @@
                         {{ __($label) }}
                     </a>
                 @endforeach
+                <a
+                    href="{{ route('flatshares.settlements.show', $flatshare) }}"
+                    class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700"
+                >
+                    {{ __('Settlements') }}
+                </a>
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg">
