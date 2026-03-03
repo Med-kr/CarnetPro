@@ -19,7 +19,11 @@ class SettlementController extends Controller
         $this->authorize('view', $flatshare);
 
         return view('flatshares.settlements', [
-            'flatshare' => $flatshare->load('owner'),
+            'flatshare' => $flatshare->load([
+                'owner',
+                'payments.fromUser',
+                'payments.toUser',
+            ]),
             'balances' => $this->settlementService->calculateBalances($flatshare),
             'settlements' => $this->settlementService->calculateSettlements($flatshare),
         ]);

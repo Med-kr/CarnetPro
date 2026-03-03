@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFlatshareRequest;
 use App\Http\Requests\UpdateFlatshareRequest;
 use App\Models\Category;
-use App\Models\Expense;
 use App\Models\Flatshare;
 use App\Models\Membership;
+use App\Services\ReputationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +15,11 @@ use Illuminate\View\View;
 
 class FlatshareController extends Controller
 {
+    public function __construct(
+        protected ReputationService $reputationService
+    ) {
+    }
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -84,6 +89,7 @@ class FlatshareController extends Controller
             'owner',
             'activeMemberships.user',
             'categories',
+            'invitations',
             'expenses' => fn ($query) => $query->with(['payer', 'category'])->latest('spent_at'),
         ]);
 
@@ -113,17 +119,42 @@ class FlatshareController extends Controller
     {
         $this->authorize('cancel', $flatshare);
 
-        $activeAfterUpdate = ! $flatshare->isActive();
+        $nextStatus = $flatshare->isActive()
+            ? Flatshare::STATUS_CANCELLED
+            : Flatshare::STATUS_ACTIVE;
 
-        $flatshare->update([
-            'status' => $activeAfterUpdate
-                ? Flatshare::STATUS_ACTIVE
-                : Flatshare::STATUS_CANCELLED,
-        ]);
+        if ($nextStatus === Flatshare::STATUS_ACTIVE) {
+            $conflictingMemberships = $flatshare->activeMemberships()
+                ->with('user')
+                ->get()
+                ->filter(function (Membership $membership) use ($flatshare) {
+                    if ($membership->user?->is_global_admin) {
+                        return false;
+                    }
+
+                    return $membership->user?->memberships()
+                        ->whereNull('left_at')
+                        ->where('flatshare_id', '!=', $flatshare->id)
+                        ->whereHas('flatshare', fn ($query) => $query->where('status', Flatshare::STATUS_ACTIVE))
+                        ->exists();
+                });
+
+            if ($conflictingMemberships->isNotEmpty()) {
+                return back()->withErrors([
+                    'status' => 'Flatshare cannot be activated because some members already belong to another active flatshare: '.$conflictingMemberships->pluck('user.name')->join(', '),
+                ]);
+            }
+        }
+
+        if ($nextStatus === Flatshare::STATUS_CANCELLED) {
+            $this->reputationService->handleFlatshareCancellation($flatshare);
+        }
+
+        $flatshare->update(['status' => $nextStatus]);
 
         return back()->with(
             'status',
-            $activeAfterUpdate ? 'Flatshare activated.' : 'Flatshare deactivated.'
+            $nextStatus === Flatshare::STATUS_ACTIVE ? 'Flatshare activated.' : 'Flatshare deactivated.'
         );
     }
 
